@@ -69,6 +69,7 @@ def answer_question(query: str, k: int = 5) -> dict[str, Any]:
         }
     """
     api_key = os.getenv("GROQ_API_KEY")
+    logger.info("GROQ_API_KEY loaded: %s", "yes" if api_key else "NO")
     if not api_key:
         raise ValueError("GROQ_API_KEY is missing from environment variables.")
 
