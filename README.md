@@ -1,3 +1,12 @@
+---
+title: Spotify Review Discovery Engine
+emoji: 🎵
+colorFrom: green
+colorTo: gray
+sdk: docker
+pinned: false
+---
+
 # Spotify Review Discovery Engine
 
 AI-powered RAG system analyzing 2,054 real Spotify user reviews to surface music discovery insights.
