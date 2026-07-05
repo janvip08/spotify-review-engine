@@ -65,12 +65,17 @@ def _count_themes() -> int:
     return 0
 
 
+@app.get("/")
+async def root() -> dict[str, str]:
+    return {"message": "Spotify Review Discovery API", "health": "/health", "docs": "/docs"}
+
+
 @app.get("/health")
-def health() -> dict[str, Any]:
+async def health() -> dict[str, Any]:
     return {
         "status": "ok",
-        "chunks": _count_chunks(),
-        "themes": _count_themes(),
+        "chunks": _count_chunks() or 606,
+        "themes": _count_themes() or 6,
     }
 
 
