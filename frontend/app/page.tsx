@@ -567,11 +567,11 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col bg-spotify-black">
+    <div className="flex h-screen flex-col overflow-hidden bg-spotify-black">
       {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
       {/* Top bar */}
       <header
-        className="flex items-center justify-between px-6 py-4"
+        className="flex shrink-0 items-center justify-between px-6 py-4"
         style={{ background: "linear-gradient(135deg, #0a1a0a, #0d2d0d)" }}
       >
         <div className="flex items-center gap-3">
@@ -618,10 +618,10 @@ export default function DashboardPage() {
 
       {/* Chat tab */}
       {activeTab === "chat" && (
-        <div className="tab-fade-enter flex flex-1 overflow-hidden">
-          <div className="flex w-[70%] flex-col border-r border-spotify-border">
+        <div className="tab-fade-enter flex min-h-0 flex-1 overflow-hidden">
+          <div className="flex min-h-0 w-[70%] flex-col border-r border-spotify-border">
             {/* Chat header with clear button */}
-            <div className="flex items-center justify-end border-b border-spotify-border px-4 py-2">
+            <div className="flex shrink-0 items-center justify-end border-b border-spotify-border px-4 py-2">
               {messages.length > 0 && (
                 <button
                   type="button"
@@ -633,23 +633,23 @@ export default function DashboardPage() {
               )}
             </div>
 
-            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            <div className="min-h-0 flex-1 overflow-y-auto p-6 space-y-4">
               {messages.length === 0 && !loading && (
-                <div className="flex h-full min-h-[320px] flex-col items-center justify-center px-4">
-                  <span className="mb-4 text-[48px] leading-none">🎵</span>
-                  <h2 className="text-center text-2xl font-bold text-white">
+                <div className="flex min-h-full flex-col items-center justify-center px-4 py-6">
+                  <span className="mb-3 text-[40px] leading-none">🎵</span>
+                  <h2 className="text-center text-xl font-bold text-white">
                     Ask anything about Spotify user feedback
                   </h2>
                   <p className="mt-2 text-center text-sm text-spotify-muted">
                     Every answer is grounded in real reviews and cited by source
                   </p>
-                  <div className="mt-8 w-full max-w-lg space-y-3">
+                  <div className="mt-5 w-full max-w-lg space-y-2">
                     {EMPTY_STATE_QUESTIONS.map((q) => (
                       <button
                         key={q}
                         type="button"
                         onClick={() => handleSubmit(undefined, q)}
-                        className="w-full rounded-lg bg-spotify-panel px-4 py-3 text-left text-sm text-spotify-text transition-colors hover:bg-spotify-card"
+                        className="w-full rounded-lg bg-spotify-panel px-4 py-2.5 text-left text-sm text-spotify-text transition-colors hover:bg-spotify-card"
                         style={{ borderLeft: "3px solid #1db954" }}
                       >
                         {q}
@@ -680,7 +680,7 @@ export default function DashboardPage() {
               )}
             </div>
 
-            <div className="border-t border-spotify-border p-4">
+            <div className="shrink-0 border-t border-spotify-border bg-spotify-black p-4">
               {error && <p className="mb-2 text-xs text-red-400">{error}</p>}
               <form onSubmit={(e) => handleSubmit(e)} className="flex items-end gap-2">
                 <textarea
@@ -709,7 +709,8 @@ export default function DashboardPage() {
           </div>
 
           {/* Right sidebar */}
-          <aside className="w-[30%] overflow-y-auto bg-spotify-panel p-5 space-y-6">
+          <aside className="flex min-h-0 w-[30%] flex-col overflow-hidden bg-spotify-panel">
+            <div className="min-h-0 flex-1 overflow-y-auto p-5 space-y-6">
             <div className="grid grid-cols-2 gap-3">
               {[
                 { label: "Total reviews", value: "2,054" },
@@ -789,13 +790,14 @@ export default function DashboardPage() {
               </h3>
               <SourceBreakdownBars />
             </div>
+            </div>
           </aside>
         </div>
       )}
 
       {/* Theme Analysis tab */}
       {activeTab === "themes" && (
-        <div className="tab-fade-enter flex-1 overflow-y-auto p-6">
+        <div className="tab-fade-enter min-h-0 flex-1 overflow-y-auto p-6">
           <ThemeFrequencyChart />
 
           {themesLoading && (

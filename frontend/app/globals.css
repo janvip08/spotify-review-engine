@@ -6,6 +6,12 @@ body {
   @apply bg-spotify-black text-spotify-text antialiased;
 }
 
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
+
 @keyframes bounce-dot {
   0%,
   80%,
