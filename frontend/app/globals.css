@@ -28,3 +28,7 @@ body {
 .animate-bounce-dot-delay-2 {
   animation-delay: 0.3s;
 }
+
+.theme-expand-enter {
+  transition: max-height 300ms ease-in-out, opacity 300ms ease-in-out;
+}
