@@ -51,6 +51,28 @@ const THEME_INTERPRETATIONS = [
   "Users build playlists with intent — algorithm overrides feel like an intrusion",
 ];
 
+const THEME_CHART_DATA = [
+  { label: "Users want control", count: 39 },
+  { label: "Algorithm loops", count: 21 },
+  { label: "Auto-play injection", count: 14 },
+  { label: "Discover Weekly stale", count: 11 },
+  { label: "Personalisation worse", count: 11 },
+  { label: "Overrides playlists", count: 8 },
+];
+
+const THEME_CHART_MAX = 39;
+
+const SOURCE_DISTRIBUTION = [
+  { name: "Play Store", count: 366, color: "#1db954", emoji: "🟢" },
+  { name: "App Store", count: 90, color: "#007aff", emoji: "🔵" },
+  { name: "Spotify Community", count: 86, color: "#5865f2", emoji: "🟣" },
+  { name: "Trustpilot", count: 37, color: "#00b67a", emoji: "🟤" },
+  { name: "YouTube", count: 16, color: "#ff0000", emoji: "🔴" },
+  { name: "Reddit", count: 11, color: "#ff6314", emoji: "🟠" },
+];
+
+const SOURCE_BREAKDOWN_MAX = 366;
+
 const CITATION_PATTERN = /\[(?:[a-z0-9_]+|\d+),\s*\d{4}-\d{2}-\d{2}\]/gi;
 
 const GREETINGS = new Set(["hi", "hello", "hey", "hii", "test", "123"]);
@@ -161,14 +183,120 @@ function TypingIndicator() {
   );
 }
 
-function SourcePill({ source, date, score }: { source: string; date: string; score: number }) {
+function SourcePill({
+  source,
+  date,
+  score,
+  index = 0,
+}: {
+  source: string;
+  date: string;
+  score: number;
+  index?: number;
+}) {
   return (
     <span
-      className="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium text-white"
-      style={{ backgroundColor: SOURCE_COLORS[source] || "#555555" }}
+      className="animate-pill-pop inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium text-white"
+      style={{
+        backgroundColor: SOURCE_COLORS[source] || "#555555",
+        animationDelay: `${index * 80}ms`,
+      }}
     >
       {formatCitationPill(source, date, score)}
     </span>
+  );
+}
+
+function LiveIndicator() {
+  return (
+    <div className="flex items-center gap-2 rounded-full border border-spotify-green/20 bg-spotify-green/5 px-3 py-1">
+      <span className="h-2 w-2 rounded-full bg-spotify-green animate-live-pulse" />
+      <span className="text-xs text-spotify-green">Live · 606 reviews indexed</span>
+    </div>
+  );
+}
+
+function ThemeFrequencyChart() {
+  return (
+    <div className="mb-8 rounded-xl border border-spotify-border bg-[#111111] p-5">
+      <h2 className="text-base font-semibold text-spotify-text">
+        Discovery Failure Themes by Frequency
+      </h2>
+      <p className="mt-1 text-xs text-spotify-muted">
+        From 606 discovery-relevant reviews across 6 sources
+      </p>
+      <div className="mt-5 space-y-3">
+        {THEME_CHART_DATA.map((item, i) => (
+          <div key={item.label} className="flex items-center gap-3">
+            <span className="w-[148px] shrink-0 truncate text-xs text-spotify-text">
+              {item.label}
+            </span>
+            <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-spotify-border">
+              <div
+                className="animate-bar-grow h-full rounded-full bg-spotify-green"
+                style={{
+                  width: `${(item.count / THEME_CHART_MAX) * 100}%`,
+                  animationDelay: `${i * 80}ms`,
+                }}
+              />
+            </div>
+            <span className="w-6 shrink-0 text-right text-xs font-medium text-spotify-green">
+              {item.count}
+            </span>
+          </div>
+        ))}
+      </div>
+      <SourceDistributionRow />
+    </div>
+  );
+}
+
+function SourceDistributionRow() {
+  return (
+    <div className="mt-5 flex flex-wrap items-center gap-x-1 gap-y-2 border-t border-spotify-border pt-4 text-xs text-spotify-muted">
+      {SOURCE_DISTRIBUTION.map((src, i) => (
+        <span key={src.name} className="inline-flex items-center gap-1">
+          {i > 0 && <span className="mx-1 text-spotify-border">·</span>}
+          <span
+            className="inline-block h-2 w-2 rounded-full"
+            style={{ backgroundColor: src.color }}
+          />
+          <span className="text-spotify-text">{src.name}</span>
+          <span>{src.count}</span>
+        </span>
+      ))}
+    </div>
+  );
+}
+
+function SourceBreakdownBars() {
+  return (
+    <div className="space-y-3">
+      {SOURCE_BREAKDOWN.map((src, i) => (
+        <div key={src.key}>
+          <div className="mb-1 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ backgroundColor: src.color }}
+              />
+              <span className="text-xs text-spotify-text">{src.name}</span>
+            </div>
+            <span className="text-xs text-spotify-muted">{src.count}</span>
+          </div>
+          <div className="h-1.5 overflow-hidden rounded-full bg-spotify-border">
+            <div
+              className="animate-bar-grow h-full rounded-full"
+              style={{
+                width: `${(src.count / SOURCE_BREAKDOWN_MAX) * 100}%`,
+                backgroundColor: src.color,
+                animationDelay: `${200 + i * 100}ms`,
+              }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -231,7 +359,13 @@ function AssistantMessage({ content, sources }: { content: string; sources: Sour
       {sources.length > 0 && (
         <div className="mt-4 flex flex-wrap gap-2 border-t border-spotify-border pt-3">
           {sources.map((src, j) => (
-            <SourcePill key={j} source={src.source} date={src.date} score={src.score} />
+            <SourcePill
+              key={j}
+              source={src.source}
+              date={src.date}
+              score={src.score}
+              index={j}
+            />
           ))}
         </div>
       )}
@@ -246,8 +380,11 @@ function ThemeCard({ theme, index }: { theme: Theme; index: number }) {
 
   return (
     <div
-      className="rounded-lg bg-[#111111] p-4 transition-all duration-300"
-      style={{ borderLeft: "3px solid #1db954" }}
+      className="animate-theme-card-in rounded-lg bg-[#111111] p-4 transition-all duration-300"
+      style={{
+        borderLeft: "3px solid #1db954",
+        animationDelay: `${index * 100}ms`,
+      }}
     >
       <div className="flex items-start justify-between gap-3">
         <h3 className="flex-1 font-bold leading-snug text-spotify-text">{theme.theme_name}</h3>
@@ -328,6 +465,12 @@ export default function DashboardPage() {
   const [themesError, setThemesError] = useState<string | null>(null);
   const [themesLoaded, setThemesLoaded] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [showChipPulse, setShowChipPulse] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setShowChipPulse(false), 5000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const adjustTextareaHeight = useCallback(() => {
     const el = textareaRef.current;
@@ -444,7 +587,9 @@ export default function DashboardPage() {
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-4">
+          <LiveIndicator />
+          <div className="flex gap-2">
           <button
             type="button"
             onClick={() => setActiveTab("chat")}
@@ -467,12 +612,13 @@ export default function DashboardPage() {
           >
             Theme Analysis
           </button>
+          </div>
         </div>
       </header>
 
       {/* Chat tab */}
       {activeTab === "chat" && (
-        <div className="flex flex-1 overflow-hidden">
+        <div className="tab-fade-enter flex flex-1 overflow-hidden">
           <div className="flex w-[70%] flex-col border-r border-spotify-border">
             {/* Chat header with clear button */}
             <div className="flex items-center justify-end border-b border-spotify-border px-4 py-2">
@@ -515,13 +661,13 @@ export default function DashboardPage() {
 
               {messages.map((msg, i) =>
                 msg.role === "user" ? (
-                  <div key={i} className="flex justify-end">
+                  <div key={i} className="flex justify-end animate-slide-in-right">
                     <div className="max-w-[80%] rounded-2xl rounded-br-sm bg-spotify-green px-4 py-3 text-sm text-spotify-black">
                       {msg.content}
                     </div>
                   </div>
                 ) : (
-                  <div key={i} className="flex justify-start">
+                  <div key={i} className="flex justify-start animate-slide-in-left">
                     <AssistantMessage content={msg.content} sources={msg.sources} />
                   </div>
                 ),
@@ -570,10 +716,11 @@ export default function DashboardPage() {
                 { label: "Relevant records", value: "606" },
                 { label: "Relevance rate", value: "29.5%" },
                 { label: "Date range", value: "4 mo" },
-              ].map((stat) => (
+              ].map((stat, i) => (
                 <div
                   key={stat.label}
-                  className="rounded-lg border border-spotify-border bg-spotify-card p-3"
+                  className="animate-fade-in-up rounded-lg border border-spotify-border bg-spotify-card p-3"
+                  style={{ animationDelay: `${i * 100}ms` }}
                 >
                   <p className="text-xl font-bold text-spotify-text">{stat.value}</p>
                   <p className="text-xs text-spotify-muted">{stat.label}</p>
@@ -584,13 +731,15 @@ export default function DashboardPage() {
             <div>
               <h3 className="mb-3 text-sm font-semibold text-spotify-green">Try asking:</h3>
               <div className="space-y-2">
-                {SUGGESTED_QUESTIONS.map((q) => (
+                {SUGGESTED_QUESTIONS.map((q, i) => (
                   <button
                     key={q}
                     type="button"
                     onClick={() => handleSubmit(undefined, q)}
                     disabled={loading}
-                    className="w-full rounded-lg bg-spotify-black px-3 py-2.5 text-left text-xs text-spotify-text transition-colors hover:bg-spotify-card disabled:opacity-50"
+                    className={`w-full rounded-lg bg-spotify-black px-3 py-2.5 text-left text-xs text-spotify-text transition-colors hover:bg-spotify-card disabled:opacity-50 ${
+                      showChipPulse && i < 3 ? "animate-subtle-pulse" : ""
+                    }`}
                     style={{ borderLeft: "3px solid #1db954" }}
                   >
                     {q}
@@ -638,23 +787,7 @@ export default function DashboardPage() {
               <h3 className="mb-3 text-sm font-semibold text-spotify-text">
                 Source breakdown
               </h3>
-              <div className="space-y-2">
-                {SOURCE_BREAKDOWN.map((src) => (
-                  <div
-                    key={src.key}
-                    className="flex items-center justify-between rounded-lg border border-spotify-border bg-spotify-card px-3 py-2"
-                  >
-                    <div className="flex items-center gap-2">
-                      <span
-                        className="h-2.5 w-2.5 rounded-full"
-                        style={{ backgroundColor: src.color }}
-                      />
-                      <span className="text-xs text-spotify-text">{src.name}</span>
-                    </div>
-                    <span className="text-xs text-spotify-muted">{src.count}</span>
-                  </div>
-                ))}
-              </div>
+              <SourceBreakdownBars />
             </div>
           </aside>
         </div>
@@ -662,9 +795,11 @@ export default function DashboardPage() {
 
       {/* Theme Analysis tab */}
       {activeTab === "themes" && (
-        <div className="flex-1 overflow-y-auto p-6">
+        <div className="tab-fade-enter flex-1 overflow-y-auto p-6">
+          <ThemeFrequencyChart />
+
           {themesLoading && (
-            <div className="flex items-center justify-center py-20">
+            <div className="flex items-center justify-center py-12">
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-spotify-green border-t-transparent" />
             </div>
           )}
