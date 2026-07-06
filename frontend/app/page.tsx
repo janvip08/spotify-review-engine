@@ -53,6 +53,41 @@ const THEME_INTERPRETATIONS = [
 
 const CITATION_PATTERN = /\[(?:[a-z0-9_]+|\d+),\s*\d{4}-\d{2}-\d{2}\]/gi;
 
+const GREETINGS = new Set(["hi", "hello", "hey", "hii", "test", "123"]);
+const GREETING_RESPONSE =
+  "Hi! I'm the Spotify Review Discovery Engine. Ask me anything about why users struggle with music discovery, recommendation frustrations, or listening behaviors.";
+
+function isOnlyNumbersOrSymbols(text: string) {
+  return !/[a-zA-Z]/.test(text);
+}
+
+type ValidationResult =
+  | { ok: true }
+  | { ok: false; type: "toast"; message: string }
+  | { ok: false; type: "greeting"; message: string };
+
+function validateQuestion(question: string): ValidationResult {
+  const trimmed = question.trim();
+  if (GREETINGS.has(trimmed.toLowerCase())) {
+    return { ok: false, type: "greeting", message: GREETING_RESPONSE };
+  }
+  if (trimmed.length < 10) {
+    return {
+      ok: false,
+      type: "toast",
+      message: "Please ask a complete question about Spotify user feedback",
+    };
+  }
+  if (isOnlyNumbersOrSymbols(trimmed)) {
+    return {
+      ok: false,
+      type: "toast",
+      message: "Please ask a question about Spotify music discovery or recommendations",
+    };
+  }
+  return { ok: true };
+}
+
 type Tab = "chat" | "themes";
 
 type Source = {
@@ -134,6 +169,21 @@ function SourcePill({ source, date, score }: { source: string; date: string; sco
     >
       {formatCitationPill(source, date, score)}
     </span>
+  );
+}
+
+function Toast({ message, onDismiss }: { message: string; onDismiss: () => void }) {
+  useEffect(() => {
+    const timer = setTimeout(onDismiss, 4000);
+    return () => clearTimeout(timer);
+  }, [message, onDismiss]);
+
+  return (
+    <div className="fixed bottom-6 left-1/2 z-50 -translate-x-1/2 animate-fade-in">
+      <div className="rounded-lg border border-spotify-green/30 bg-spotify-card px-4 py-3 text-sm text-spotify-text shadow-lg">
+        {message}
+      </div>
+    </div>
   );
 }
 
@@ -277,6 +327,7 @@ export default function DashboardPage() {
   const [themesLoading, setThemesLoading] = useState(false);
   const [themesError, setThemesError] = useState<string | null>(null);
   const [themesLoaded, setThemesLoaded] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
 
   const adjustTextareaHeight = useCallback(() => {
     const el = textareaRef.current;
@@ -319,6 +370,22 @@ export default function DashboardPage() {
     const question = (questionOverride ?? input).trim();
     if (!question || loading) return;
 
+    const validation = validateQuestion(question);
+    if (!validation.ok) {
+      if (validation.type === "toast") {
+        setToast(validation.message);
+        return;
+      }
+      setInput("");
+      setError(null);
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", content: question },
+        { role: "assistant", content: validation.message, sources: [] },
+      ]);
+      return;
+    }
+
     setInput("");
     setError(null);
     setMessages((prev) => [...prev, { role: "user", content: question }]);
@@ -358,6 +425,7 @@ export default function DashboardPage() {
 
   return (
     <div className="flex min-h-screen flex-col bg-spotify-black">
+      {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
       {/* Top bar */}
       <header
         className="flex items-center justify-between px-6 py-4"

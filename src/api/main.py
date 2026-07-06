@@ -56,6 +56,23 @@ class QueryResponse(BaseModel):
     sources: list[dict[str, Any]]
 
 
+IRRELEVANT_RESPONSE = (
+    "I'm designed to answer questions about Spotify user feedback and music discovery. "
+    "Try asking: 'Why do users struggle to discover new music?' or "
+    "'What are the most common frustrations with recommendations?'"
+)
+
+
+def is_relevant_question(question: str) -> bool:
+    if len(question.strip()) < 10:
+        return False
+    irrelevant_patterns = ["hi", "hello", "hey", "test", "thanks", "ok", "bye"]
+    q_lower = question.lower().strip()
+    if q_lower in irrelevant_patterns:
+        return False
+    return True
+
+
 def _mask_secret(value: str | None) -> str:
     if not value:
         return "NOT SET"
@@ -189,6 +206,10 @@ def query(body: QueryRequest) -> dict[str, Any]:
                 "path": str(CHROMA_INDEX_PATH),
             },
         ) from exc
+
+    if not is_relevant_question(body.question):
+        logger.info("POST /query | rejected irrelevant question: %r", body.question[:80])
+        return {"answer": IRRELEVANT_RESPONSE, "sources": []}
 
     try:
         return answer_question(body.question, k=body.k)
